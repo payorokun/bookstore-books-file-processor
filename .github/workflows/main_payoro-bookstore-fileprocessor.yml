@@ -29,7 +29,7 @@ jobs:
           context: .
           file: ./FileProcessor/Dockerfile
           push: true
-          tags: bookstore/fileprocessor:latest
+          tags: payorokun/fileprocessor:latest
 
       - name: Login to Azure CLI
         uses: azure/login@v2
@@ -50,7 +50,7 @@ jobs:
           az functionapp config container set \
             --resource-group SailPoint-test-rg \
             --name payoro-bookstore-fileprocessor \
-            --docker-custom-image-name bookstore/fileprocessor:latest
+            --docker-custom-image-name payorokun/fileprocessor:latest
 
 
 # # # # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
