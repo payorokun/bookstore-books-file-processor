@@ -9,7 +9,7 @@ WORKDIR /src
 COPY ["FileProcessor.csproj", "FileProcessor/"]
 RUN dotnet restore "FileProcessor.csproj"
 COPY . .
-WORKDIR "/src/FileProcessor"
+WORKDIR "/src"
 RUN dotnet build "FileProcessor.csproj" -c Release -o /app/build
 
 FROM build AS publish
