@@ -33,10 +33,10 @@ jobs:
       - name: Login to Azure CLI
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1B569658BEB845FEBEB0973EA768186D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9972D4C13548408D9E06CD1BF3E6DCC5 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_633B402FA8EF4859905C30520089F4D9 }}
+          client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}
 
       - name: Deploy to Azure Function App
         run: |
