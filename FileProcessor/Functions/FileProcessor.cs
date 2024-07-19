@@ -5,19 +5,18 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using FileProcessor.Commands;
 using FileProcessor.Handlers;
-using FileProcessor.Utils;
 using MediatR;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker;
 
 namespace FileProcessor.Functions;
 
-public class FileProcessor(IMediator mediator, TypoCorrectionCache cache, BlobServiceClient blobServiceClient)
+public class FileProcessor(IMediator mediator, BlobServiceClient blobServiceClient, ILogger<FileProcessor> logger)
 {
-    [FunctionName("FileProcessor")]
-    public async Task Run([BlobTrigger("publisher-files/{name}", Connection = "TriggerFileStorage")] Stream myBlob, string name, ILogger log)
+    [Function(nameof(FileProcessor))]
+    public async Task Run([BlobTrigger("publisher-files/{name}", Connection = "TriggerFileStorage")] Stream myBlob, string name)
     {
-        log.LogInformation($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
+        logger.LogInformation($"Blob trigger function Processing blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
 
         var containerClient = blobServiceClient.GetBlobContainerClient("publisher-files");
         var blobClient = containerClient.GetBlobClient(name);
@@ -28,7 +27,7 @@ public class FileProcessor(IMediator mediator, TypoCorrectionCache cache, BlobSe
             var properties = await blobClient.GetPropertiesAsync();
             if (properties.Value.Metadata.ContainsKey("Processed") && properties.Value.Metadata["Processed"] == "true")
             {
-                log.LogInformation($"Blob {name} has already been processed.");
+                logger.LogInformation($"Blob {name} has already been processed.");
                 return;
             }
 
@@ -43,7 +42,7 @@ public class FileProcessor(IMediator mediator, TypoCorrectionCache cache, BlobSe
                 // Forward the list of books to the SaveBooksCommand
                 await mediator.Send(new SaveBooksCommand(parsedData));
             }
-            catch (SaveBooksCommandHandler.DatabaseUpdateException e)
+            catch (SaveBooksCommandHandler.DatabaseUpdateException)
             {
                 //if a database update exception occurs, move the file to the dead-letter queue
                 throw;
@@ -51,7 +50,7 @@ public class FileProcessor(IMediator mediator, TypoCorrectionCache cache, BlobSe
             catch(Exception e)
             {
                 //otherwise, log the error and continue because we know that the data was stored
-                log.LogError($"A non-critical error occurred during file processing: {e}");
+                logger.LogError($"A non-critical error occurred during file processing: {e}");
             }
 
             // Mark the blob as processed
@@ -63,7 +62,7 @@ public class FileProcessor(IMediator mediator, TypoCorrectionCache cache, BlobSe
         }
         catch (Exception ex)
         {
-            log.LogError($"Error processing blob {name}: {ex.Message}");
+            logger.LogError($"Error processing blob {name}: {ex.Message}");
 
             // Move blob to dead-letter queue
             var deadLetterContainerClient = blobServiceClient.GetBlobContainerClient("dead-letter-files");
@@ -73,7 +72,7 @@ public class FileProcessor(IMediator mediator, TypoCorrectionCache cache, BlobSe
             await deadLetterBlobClient.StartCopyFromUriAsync(blobClient.Uri);
             await blobClient.DeleteIfExistsAsync();
 
-            log.LogInformation($"Blob {name} moved to dead-letter queue.");
+            logger.LogInformation($"Blob {name} moved to dead-letter queue.");
 
             throw;
         }
