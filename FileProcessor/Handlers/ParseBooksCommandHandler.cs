@@ -12,28 +12,44 @@ using Newtonsoft.Json;
 
 namespace FileProcessor.Handlers;
 
-public class ParseBooksCommandHandler(ILogger<ParseBooksCommandHandler> logger, IMediator mediator, BooksParserService booksParserService) : IRequestHandler<ParseBooksCommand, List<Book>>
+public class ParseBooksCommandHandler : IRequestHandler<ParseBooksCommand, List<Book>>
 {
+    private readonly ILogger<ParseBooksCommandHandler> _logger;
+    private readonly IMediator _mediator;
+    private readonly BooksParserService _booksParserService;
+
+    public ParseBooksCommandHandler(ILogger<ParseBooksCommandHandler> logger, IMediator mediator, BooksParserService booksParserService)
+    {
+        _logger = logger;
+        _mediator = mediator;
+        _booksParserService = booksParserService;
+    }
     public async Task<List<Book>> Handle(ParseBooksCommand request, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Parsing Books");
-        var books = await booksParserService.ParseBooksAsync(request.JsonData);
+        _logger.LogDebug("Parsing Books");
+        var books = await _booksParserService.ParseBooksAsync(request.JsonData);
 
-        var filteredBooks = await mediator.Send(new FilterBooksCommand(books), cancellationToken);
+        var filteredBooks = await _mediator.Send(new FilterBooksCommand(books), cancellationToken);
 
-        logger.LogDebug("Finished Parsing Books");
+        _logger.LogDebug("Finished Parsing Books");
         return filteredBooks;
     }
 }
 
 
-public class BooksParserService(TypoCorrectionCache cache)
+public class BooksParserService
 {
+    private readonly TypoCorrectionCache _cache;
+
+    public BooksParserService(TypoCorrectionCache cache)
+    {
+        _cache = cache;
+    }
     public async Task<List<Book>> ParseBooksAsync(string jsonData)
     {
         await using var jsonReader = new JsonTextReader(new StringReader(jsonData));
         var serializer = new JsonSerializer();
-        serializer.Converters.Add(new BookJsonConverter(cache));
+        serializer.Converters.Add(new BookJsonConverter(_cache));
         return serializer.Deserialize<List<Book>>(jsonReader);
     }
 }

@@ -7,8 +7,15 @@ using Newtonsoft.Json.Linq;
 
 namespace FileProcessor.Utils;
 
-public class BookJsonConverter(TypoCorrectionCache cache) : JsonConverter<Book>
+public class BookJsonConverter : JsonConverter<Book>
 {
+    private readonly TypoCorrectionCache _cache;
+
+    public BookJsonConverter(TypoCorrectionCache cache)
+    {
+        _cache = cache;
+    }
+
     public override Book ReadJson(JsonReader reader, Type objectType, Book existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         var jsonObject = JObject.Load(reader);
@@ -16,7 +23,7 @@ public class BookJsonConverter(TypoCorrectionCache cache) : JsonConverter<Book>
 
         foreach (var property in jsonObject.Properties())
         {
-            var correctedKey = cache.GetCorrectedKeyAsync(property.Name).GetAwaiter().GetResult();
+            var correctedKey = _cache.GetCorrectedKeyAsync(property.Name).GetAwaiter().GetResult();
             correctedJson[correctedKey] = property.Value;
         }
 

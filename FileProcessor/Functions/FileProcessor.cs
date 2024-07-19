@@ -5,20 +5,30 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using FileProcessor.Commands;
 using FileProcessor.Handlers;
+using FileProcessor.Utils;
 using MediatR;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.Azure.Functions.Worker;
 
 namespace FileProcessor.Functions;
 
-public class FileProcessor(IMediator mediator, BlobServiceClient blobServiceClient, ILogger<FileProcessor> logger)
+public class FileProcessor
 {
-    [Function(nameof(FileProcessor))]
-    public async Task Run([BlobTrigger("publisher-files/{name}", Connection = "TriggerFileStorage")] Stream myBlob, string name)
-    {
-        logger.LogInformation($"Blob trigger function Processing blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
+    private readonly IMediator _mediator;
+    private readonly BlobServiceClient _blobServiceClient;
 
-        var containerClient = blobServiceClient.GetBlobContainerClient("publisher-files");
+    public FileProcessor(IMediator mediator, BlobServiceClient blobServiceClient)
+    {
+        _mediator = mediator;
+        _blobServiceClient = blobServiceClient;
+    }
+
+    [FunctionName("FileProcessor")]
+    public async Task Run([BlobTrigger("publisher-files/{name}", Connection = "TriggerFileStorage")] Stream myBlob, string name, ILogger log)
+    {
+        log.LogInformation($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
+
+        var containerClient = _blobServiceClient.GetBlobContainerClient("publisher-files");
         var blobClient = containerClient.GetBlobClient(name);
 
         try
@@ -27,7 +37,7 @@ public class FileProcessor(IMediator mediator, BlobServiceClient blobServiceClie
             var properties = await blobClient.GetPropertiesAsync();
             if (properties.Value.Metadata.ContainsKey("Processed") && properties.Value.Metadata["Processed"] == "true")
             {
-                logger.LogInformation($"Blob {name} has already been processed.");
+                log.LogInformation($"Blob {name} has already been processed.");
                 return;
             }
 
@@ -35,14 +45,14 @@ public class FileProcessor(IMediator mediator, BlobServiceClient blobServiceClie
             var jsonData = await reader.ReadToEndAsync();
         
             // Forward the list of books to the ParseBookCommand
-            var parsedData = await mediator.Send(new ParseBooksCommand(jsonData));
+            var parsedData = await _mediator.Send(new ParseBooksCommand(jsonData));
 
             try
             {
                 // Forward the list of books to the SaveBooksCommand
-                await mediator.Send(new SaveBooksCommand(parsedData));
+                await _mediator.Send(new SaveBooksCommand(parsedData));
             }
-            catch (SaveBooksCommandHandler.DatabaseUpdateException)
+            catch (SaveBooksCommandHandler.DatabaseUpdateException e)
             {
                 //if a database update exception occurs, move the file to the dead-letter queue
                 throw;
@@ -50,7 +60,7 @@ public class FileProcessor(IMediator mediator, BlobServiceClient blobServiceClie
             catch(Exception e)
             {
                 //otherwise, log the error and continue because we know that the data was stored
-                logger.LogError($"A non-critical error occurred during file processing: {e}");
+                log.LogError($"A non-critical error occurred during file processing: {e}");
             }
 
             // Mark the blob as processed
@@ -62,17 +72,17 @@ public class FileProcessor(IMediator mediator, BlobServiceClient blobServiceClie
         }
         catch (Exception ex)
         {
-            logger.LogError($"Error processing blob {name}: {ex.Message}");
+            log.LogError($"Error processing blob {name}: {ex.Message}");
 
             // Move blob to dead-letter queue
-            var deadLetterContainerClient = blobServiceClient.GetBlobContainerClient("dead-letter-files");
+            var deadLetterContainerClient = _blobServiceClient.GetBlobContainerClient("dead-letter-files");
             await deadLetterContainerClient.CreateIfNotExistsAsync();
             var deadLetterBlobClient = deadLetterContainerClient.GetBlobClient(name);
 
             await deadLetterBlobClient.StartCopyFromUriAsync(blobClient.Uri);
             await blobClient.DeleteIfExistsAsync();
 
-            logger.LogInformation($"Blob {name} moved to dead-letter queue.");
+            log.LogInformation($"Blob {name} moved to dead-letter queue.");
 
             throw;
         }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace FileProcessor.Utils;
 

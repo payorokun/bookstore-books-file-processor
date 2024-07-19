@@ -13,20 +13,32 @@ using Microsoft.Extensions.Logging;
 
 namespace FileProcessor.Handlers;
 
-public class SaveBooksCommandHandler(CosmosClient cosmosClient, ILogger<SaveBooksCommandHandler> logger, IMapper mapper) : IRequestHandler<SaveBooksCommand>
+public class SaveBooksCommandHandler : IRequestHandler<SaveBooksCommand>
 {
-    public class DatabaseUpdateException(Exception innerException) : Exception{}
-    private readonly Container _container = cosmosClient.GetContainer("BookstoreDatabase", "BooksContainer");
+    private readonly ILogger<SaveBooksCommandHandler> _logger;
+    private readonly IMapper _mapper;
+
+    public SaveBooksCommandHandler(CosmosClient cosmosClient, ILogger<SaveBooksCommandHandler> logger, IMapper mapper)
+    {
+        _logger = logger;
+        _mapper = mapper;
+        _container = cosmosClient.GetContainer("BookstoreDatabase", "BooksContainer");
+    }
+    public class DatabaseUpdateException : Exception{
+        public DatabaseUpdateException(Exception innerException) { }
+    }
+
+    private readonly Container _container;
 
     public async Task<Unit> Handle(SaveBooksCommand request, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Storing Books in database");
+        _logger.LogDebug("Storing Books in database");
         var updatedItemsCount = 0;
         try
         {
             foreach (var book in request.Books)
             {
-                var bookEntity = mapper.Map<BookEntity>(book);
+                var bookEntity = _mapper.Map<BookEntity>(book);
                 await _container.UpsertItemAsync(bookEntity, new PartitionKey(bookEntity.PartitionKey), null, cancellationToken);
                 updatedItemsCount++;
             }
@@ -35,7 +47,7 @@ public class SaveBooksCommandHandler(CosmosClient cosmosClient, ILogger<SaveBook
         {
             throw new DatabaseUpdateException(e);
         }
-        logger.LogDebug($"Updated {updatedItemsCount} items");
+        _logger.LogDebug($"Updated {updatedItemsCount} items");
         return Unit.Value;
     }
 }

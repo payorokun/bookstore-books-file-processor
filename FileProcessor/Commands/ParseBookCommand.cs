@@ -4,7 +4,12 @@ using MediatR;
 
 namespace FileProcessor.Commands;
 
-public class ParseBooksCommand(string jsonData) : IRequest<List<Book>>
+public class ParseBooksCommand : IRequest<List<Book>>
 {
-    public string JsonData { get; } = jsonData;
+    public ParseBooksCommand(string jsonData)
+    {
+        JsonData = jsonData;
+    }
+
+    public string JsonData { get; }
 }

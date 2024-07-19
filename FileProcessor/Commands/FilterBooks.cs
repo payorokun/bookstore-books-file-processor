@@ -4,7 +4,12 @@ using FileProcessor.Models;
 
 namespace FileProcessor.Commands;
 
-public class FilterBooksCommand(List<Book> books) : IRequest<List<Book>>
+public class FilterBooksCommand : IRequest<List<Book>>
 {
-    public List<Book> Books { get; } = books;
+    public FilterBooksCommand(List<Book> books)
+    {
+        Books = books;
+    }
+
+    public List<Book> Books { get; }
 }

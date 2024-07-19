@@ -4,7 +4,12 @@ using MediatR;
 
 namespace FileProcessor.Commands;
 
-public class SaveBooksCommand(List<Book> books) : IRequest
+public class SaveBooksCommand : IRequest
 {
-    public List<Book> Books { get; } = books;
+    public SaveBooksCommand(List<Book> books)
+    {
+        Books = books;
+    }
+
+    public List<Book> Books { get; }
 }
