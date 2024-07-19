@@ -41,7 +41,7 @@ jobs:
           az functionapp config container set \
             --name payoro-bookstore-fileprocessor \
             --resource-group SailPoint-test-rg \
-            --docker-custom-image-name bookstore/fileprocessor:latest \
+            --docker-custom-image-name payorokun/fileprocessor:latest \
             --docker-registry-server-url https://index.docker.io/v1/ \
             --docker-registry-server-user ${{ secrets.DOCKER_HUB_USERNAME }} \
             --docker-registry-server-password ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
