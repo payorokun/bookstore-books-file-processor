@@ -26,7 +26,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./FileProcessor
+          context: .
+          file: ./FileProcessor/Dockerfile
           push: true
           tags: bookstore/fileprocessor:latest
 
