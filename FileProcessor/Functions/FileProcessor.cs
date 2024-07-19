@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using FileProcessor.Commands;
 using FileProcessor.Handlers;
-using FileProcessor.Utils;
 using MediatR;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;

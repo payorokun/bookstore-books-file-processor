@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using FileProcessor;
 using FileProcessor.Handlers;
@@ -10,7 +8,6 @@ using MediatR;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 
 [assembly: FunctionsStartup(typeof(Startup))]
@@ -29,13 +26,13 @@ public class Startup : FunctionsStartup
         const string tableName = "TypoCorrections";
 
         var blobServiceClientConnectionString = Environment.GetEnvironmentVariable("TriggerFileStorage");
-        builder.Services.AddSingleton(s => new BlobServiceClient(blobServiceClientConnectionString));
+        builder.Services.AddSingleton(_ => new BlobServiceClient(blobServiceClientConnectionString));
 
         var cache = new TypoCorrectionCache(storageConnectionString, tableName);
         builder.Services.AddSingleton(cache);
 
         builder.Services.AddSingleton<BooksParserService>();
-        builder.Services.AddSingleton(s =>
+        builder.Services.AddSingleton(_ =>
         {
             var cosmosConnectionString = Environment.GetEnvironmentVariable("CosmosConnectionString");
             var cosmosClient = new CosmosClient(cosmosConnectionString);

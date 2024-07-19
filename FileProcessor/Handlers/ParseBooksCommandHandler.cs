@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FileProcessor.Commands;
@@ -27,7 +26,7 @@ public class ParseBooksCommandHandler : IRequestHandler<ParseBooksCommand, List<
     public async Task<List<Book>> Handle(ParseBooksCommand request, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Parsing Books");
-        var books = await _booksParserService.ParseBooksAsync(request.JsonData);
+        var books = _booksParserService.ParseBooks(request.JsonData);
 
         var filteredBooks = await _mediator.Send(new FilterBooksCommand(books), cancellationToken);
 
@@ -45,9 +44,9 @@ public class BooksParserService
     {
         _cache = cache;
     }
-    public async Task<List<Book>> ParseBooksAsync(string jsonData)
+    public List<Book> ParseBooks(string jsonData)
     {
-        await using var jsonReader = new JsonTextReader(new StringReader(jsonData));
+        using var jsonReader = new JsonTextReader(new StringReader(jsonData));
         var serializer = new JsonSerializer();
         serializer.Converters.Add(new BookJsonConverter(_cache));
         return serializer.Deserialize<List<Book>>(jsonReader);

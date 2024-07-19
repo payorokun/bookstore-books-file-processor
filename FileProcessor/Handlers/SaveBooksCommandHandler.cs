@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using FileProcessor.Commands;
-using FileProcessor.Models;
 using FileProcessor.Models.Database;
 using MediatR;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Container = Microsoft.Azure.Cosmos.Container;
 
 namespace FileProcessor.Handlers;
 
@@ -25,7 +24,7 @@ public class SaveBooksCommandHandler : IRequestHandler<SaveBooksCommand>
         _container = cosmosClient.GetContainer("BookstoreDatabase", "BooksContainer");
     }
     public class DatabaseUpdateException : Exception{
-        public DatabaseUpdateException(Exception innerException) { }
+        public DatabaseUpdateException(Exception wrappedException) : base(wrappedException.Message, wrappedException) { }
     }
 
     private readonly Container _container;
