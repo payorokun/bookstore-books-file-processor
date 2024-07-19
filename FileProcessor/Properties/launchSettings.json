@@ -2,8 +2,13 @@
   "profiles": {
     "FileProcessor": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7206",
-      "launchBrowser": false
+      "commandLineArgs": "--port 7206"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 31574,
+      "useSSL": false
     }
   }
 }
