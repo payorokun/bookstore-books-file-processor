@@ -26,9 +26,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./FileProcessor
           push: true
-          tags: your-dockerhub-username/fileprocessor:latest
+          tags: bookstore/fileprocessor:latest
 
       - name: Login to Azure CLI
         uses: azure/login@v2
@@ -42,14 +42,14 @@ jobs:
         run: |
           az functionapp deployment container config \
             --enable-cd \
-            --resource-group <your-resource-group> \
-            --name <your-function-app-name> \
+            --resource-group SailPoint-test-rg \
+            --name payoro-bookstore-fileprocessor \
             --registry-username ${{ secrets.DOCKER_HUB_USERNAME }} \
             --registry-password ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           az functionapp config container set \
-            --resource-group <your-resource-group> \
-            --name <your-function-app-name> \
-            --docker-custom-image-name your-dockerhub-username/fileprocessor:latest
+            --resource-group SailPoint-test-rg \
+            --name payoro-bookstore-fileprocessor \
+            --docker-custom-image-name bookstore/fileprocessor:latest
 
 
 # # # # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
