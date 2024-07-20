@@ -3,12 +3,6 @@
     "FileProcessor": {
       "commandName": "Project",
       "commandLineArgs": "--port 7202"
-    },
-    "Container (Dockerfile)": {
-      "commandName": "Docker",
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "httpPort": 30256,
-      "useSSL": false
     }
   }
 }

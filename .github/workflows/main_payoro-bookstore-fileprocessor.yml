@@ -1,4 +1,7 @@
-name: Build and deploy Docker container to Azure Function App
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy dotnet core project to Azure Function App - payoro-bookstore-fileprocessor
 
 on:
   push:
@@ -6,103 +9,45 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './FileProcessor' # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '6.0.x' # set this to the dotnet version to use
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write #This is required for requesting the JWT
 
     steps:
-      - name: Checkout code
+      - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+        uses: actions/setup-dotnet@v1
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./FileProcessor/Dockerfile
-          push: true
-          tags: payorokun/fileprocessor:latest
-
-      - name: Login to Azure CLI
+      - name: 'Resolve Project Dependencies Using Dotnet'
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          dotnet build --configuration Release --output ./output
+          popd
+      
+      - name: Login to Azure
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1B569658BEB845FEBEB0973EA768186D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9972D4C13548408D9E06CD1BF3E6DCC5 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_633B402FA8EF4859905C30520089F4D9 }}
+          client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}
 
-      - name: Deploy to Azure Function App
-        run: |
-          az functionapp config container set \
-            --name payoro-bookstore-fileprocessor \
-            --resource-group SailPoint-test-rg \
-            --docker-custom-image-name payorokun/fileprocessor:latest \
-            --docker-registry-server-url https://index.docker.io/v1/ \
-            --docker-registry-server-user ${{ secrets.DOCKER_HUB_USERNAME }} \
-            --docker-registry-server-password ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Restart Azure Function App
-        run: |
-          az functionapp restart \
-            --name payoro-bookstore-fileprocessor \
-            --resource-group SailPoint-test-rg
-
-
-# # # # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-# # # # More GitHub Actions for Azure: https://github.com/Azure/actions
-
-# # # name: Build and deploy dotnet core project to Azure Function App - payoro-bookstore-fileprocessor
-
-# # # on:
-# # #   push:
-# # #     branches:
-# # #       - main
-# # #   workflow_dispatch:
-
-# # # env:
-# # #   AZURE_FUNCTIONAPP_PACKAGE_PATH: './FileProcessor' # set this to the path to your web app project, defaults to the repository root
-# # #   DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
-
-# # # jobs:
-# # #   build-and-deploy:
-# # #     runs-on: ubuntu-latest
-# # #     permissions:
-# # #       id-token: write #This is required for requesting the JWT
-
-# # #     steps:
-# # #       - name: 'Checkout GitHub Action'
-# # #         uses: actions/checkout@v4
-
-# # #       - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-# # #         uses: actions/setup-dotnet@v1
-# # #         with:
-# # #           dotnet-version: ${{ env.DOTNET_VERSION }}
-
-# # #       - name: 'Resolve Project Dependencies Using Dotnet'
-# # #         shell: bash
-# # #         run: |
-# # #           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-# # #           dotnet build --configuration Release --output ./output
-# # #           popd
-      
-# # #       - name: Login to Azure
-# # #         uses: azure/login@v2
-# # #         with:
-# # #           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1B569658BEB845FEBEB0973EA768186D }}
-# # #           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9972D4C13548408D9E06CD1BF3E6DCC5 }}
-# # #           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_633B402FA8EF4859905C30520089F4D9 }}
-# # #           client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}
-
-# # #       - name: 'Run Azure Functions Action'
-# # #         uses: Azure/functions-action@v1
-# # #         id: fa
-# # #         with:
-# # #           app-name: 'payoro-bookstore-fileprocessor'
-# # #           slot-name: 'Production'
-# # #           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
+        with:
+          app-name: 'payoro-bookstore-fileprocessor'
+          slot-name: 'Production'
+          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
           
