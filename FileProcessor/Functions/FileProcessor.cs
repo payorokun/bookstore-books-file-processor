@@ -16,10 +16,11 @@ public class FileProcessor
     private readonly IMediator _mediator;
     private readonly BlobServiceClient _blobServiceClient;
 
-    public FileProcessor(IMediator mediator, BlobServiceClient blobServiceClient)
+    public FileProcessor(IMediator mediator)
     {
         _mediator = mediator;
-        _blobServiceClient = blobServiceClient;
+        var blobServiceClientConnectionString = Environment.GetEnvironmentVariable("TriggerFileStorage");
+        _blobServiceClient = new BlobServiceClient(blobServiceClientConnectionString);
     }
 
     [FunctionName("FileProcessor")]

@@ -11,9 +11,11 @@ public class BookJsonConverter : JsonConverter<Book>
 {
     private readonly TypoCorrectionCache _cache;
 
-    public BookJsonConverter(TypoCorrectionCache cache)
+    public BookJsonConverter()
     {
-        _cache = cache;
+        var storageConnectionString = Environment.GetEnvironmentVariable("TypoCorrectionsStorageConnectionString");
+        const string tableName = "TypoCorrections";
+        _cache = new TypoCorrectionCache(storageConnectionString, tableName);
     }
 
     public override Book ReadJson(JsonReader reader, Type objectType, Book existingValue, bool hasExistingValue, JsonSerializer serializer)

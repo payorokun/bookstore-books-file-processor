@@ -22,21 +22,17 @@ public class Startup : FunctionsStartup
         builder.Services.AddMediatR(assembly);
         builder.Services.AddAutoMapper(assembly);
 
-        var storageConnectionString = Environment.GetEnvironmentVariable("TypoCorrectionsStorageConnectionString");
-        const string tableName = "TypoCorrections";
+        //var storageConnectionString = Environment.GetEnvironmentVariable("TypoCorrectionsStorageConnectionString");
+        //const string tableName = "TypoCorrections";
 
-        var blobServiceClientConnectionString = Environment.GetEnvironmentVariable("TriggerFileStorage");
-        builder.Services.AddSingleton(_ => new BlobServiceClient(blobServiceClientConnectionString));
+        //var cache = new TypoCorrectionCache(storageConnectionString, tableName);
+        //builder.Services.AddSingleton(cache);
 
-        var cache = new TypoCorrectionCache(storageConnectionString, tableName);
-        builder.Services.AddSingleton(cache);
+        //var blobServiceClientConnectionString = Environment.GetEnvironmentVariable("TriggerFileStorage");
+        //builder.Services.AddSingleton(_ => new BlobServiceClient(blobServiceClientConnectionString));
+
+        
 
         builder.Services.AddSingleton<BooksParserService>();
-        builder.Services.AddSingleton(_ =>
-        {
-            var cosmosConnectionString = Environment.GetEnvironmentVariable("CosmosConnectionString");
-            var cosmosClient = new CosmosClient(cosmosConnectionString);
-            return cosmosClient;
-        });
     }
 }

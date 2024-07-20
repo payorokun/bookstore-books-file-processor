@@ -17,10 +17,12 @@ public class SaveBooksCommandHandler : IRequestHandler<SaveBooksCommand>
     private readonly ILogger<SaveBooksCommandHandler> _logger;
     private readonly IMapper _mapper;
 
-    public SaveBooksCommandHandler(CosmosClient cosmosClient, ILogger<SaveBooksCommandHandler> logger, IMapper mapper)
+    public SaveBooksCommandHandler(ILogger<SaveBooksCommandHandler> logger, IMapper mapper)
     {
         _logger = logger;
         _mapper = mapper;
+        var cosmosConnectionString = Environment.GetEnvironmentVariable("CosmosConnectionString");
+        var cosmosClient = new CosmosClient(cosmosConnectionString);
         _container = cosmosClient.GetContainer("BookstoreDatabase", "BooksContainer");
     }
     public class DatabaseUpdateException : Exception{

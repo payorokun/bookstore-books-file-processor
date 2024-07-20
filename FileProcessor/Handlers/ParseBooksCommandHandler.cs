@@ -38,17 +38,11 @@ public class ParseBooksCommandHandler : IRequestHandler<ParseBooksCommand, List<
 
 public class BooksParserService
 {
-    private readonly TypoCorrectionCache _cache;
-
-    public BooksParserService(TypoCorrectionCache cache)
-    {
-        _cache = cache;
-    }
     public List<Book> ParseBooks(string jsonData)
     {
         using var jsonReader = new JsonTextReader(new StringReader(jsonData));
         var serializer = new JsonSerializer();
-        serializer.Converters.Add(new BookJsonConverter(_cache));
+        serializer.Converters.Add(new BookJsonConverter());
         return serializer.Deserialize<List<Book>>(jsonReader);
     }
 }
