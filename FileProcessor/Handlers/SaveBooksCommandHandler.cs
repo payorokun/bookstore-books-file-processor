@@ -31,7 +31,7 @@ public class SaveBooksCommandHandler : IRequestHandler<SaveBooksCommand>
 
     private readonly Container _container;
 
-    public async Task<Unit> Handle(SaveBooksCommand request, CancellationToken cancellationToken)
+    public async Task Handle(SaveBooksCommand request, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Storing Books in database");
         var updatedItemsCount = 0;
@@ -49,6 +49,5 @@ public class SaveBooksCommandHandler : IRequestHandler<SaveBooksCommand>
             throw new DatabaseUpdateException(e);
         }
         _logger.LogDebug($"Updated {updatedItemsCount} items");
-        return Unit.Value;
     }
 }
