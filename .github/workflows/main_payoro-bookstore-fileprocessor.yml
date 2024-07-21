@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './FileProcessor' # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
   DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
 
 jobs:
@@ -38,10 +38,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1B569658BEB845FEBEB0973EA768186D }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9972D4C13548408D9E06CD1BF3E6DCC5 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_633B402FA8EF4859905C30520089F4D9 }}
-          client-secret: ${{ secrets.AZUREAPPSERVICE_CLIENTSECRET }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D9CE1D07DDD44CF2AE839E381A03554A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BFB248E5C4D1409DAE925E4710735179 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F6E548E5492348B18CE9231D76667CBE }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
